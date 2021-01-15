@@ -5,7 +5,7 @@ __all__ = ["index", "modules", "custom_doc_links", "git_url"]
 index = {"MemHooks": "00_core.ipynb",
          "plot_log": "00_core.ipynb",
          "reset_grad": "00_core.ipynb",
-         "profile_memory": "00_core.ipynb",
+         "memprofile": "00_core.ipynb",
          "MemProfileCallback": "00_core.ipynb",
          "Learner.profile_memory": "00_core.ipynb",
          "MemStatsCallback": "00_core.ipynb"}
