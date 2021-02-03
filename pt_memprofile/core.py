@@ -75,6 +75,7 @@ def reset_grad(model:nn.Module):
 
 # Cell
 def memprofile(model:nn.Module, xb:Tensor, yb:Tensor, loss_func=CrossEntropyLossFlat(), plot=True, label=None, fp16=False):
+    "Records memory stats for one forward-and-backward pass through the model with batch (xb, yb)"
     def forward_and_loss():
         out = model(xb)
         return loss_func(out, yb)
@@ -114,6 +115,10 @@ class MemProfileCallback(Callback):
 # Cell
 @patch
 def profile_memory(self:Learner, plot=True):
+    """
+    !!WIP!!
+    Records memory stats for single forward-and-backward pass
+    """
     with MemHooks(flatten_model(self.model), type(self.model).__name__) as h:
         #self._split(self.dls.one_batch())
         #self.model.to(self.dls.device)
@@ -138,7 +143,7 @@ def simple_dls():
 
 # Cell
 class MemStatsCallback(HookCallback):
-    "Registers memory hooks on ms"
+    "Registers memory hooks on modules in `ms`"
     def __init__(self, ms=None, label=None, remove_end=True):
         store_attr()
         self.prealloc = torch.cuda.memory_allocated()
@@ -147,7 +152,7 @@ class MemStatsCallback(HookCallback):
     def _register(self): self.hooks = MemHooks(self.ms, name=self.label)
 
     def before_fit(self):
-        "Register the `Hooks` on `self.modules`."
+        "Register `self.hooks` on `self.ms`."
         if self.ms is None: self.ms = [m for m in flatten_model(self.model) if has_params(m)]
         if self.every is None: self._register()
 
