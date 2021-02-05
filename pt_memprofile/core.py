@@ -101,33 +101,24 @@ def simple_model(ni=100, no=2, n=4):
 
 # Cell
 class MemProfileCallback(Callback):
-    "Cancels batch after backward to avoid opt.step()"
-    def before_batch(self):
-        self._split(self.dls.one_batch())
-        self.model.to(self.dls.device)
-        self.create_opt()
-        self.model.train()
-        self.learn.training = True
-    def after_backward(self):
-        print('Batch canceled')
-        raise CancelBatchException
+    "Cancels fit after one batch before weight update"
+    def before_step(self):
+        reset_grad(self.model)
+        raise CancelStepException
+    def after_batch(self):
+        print('Fit canceled')
+        raise CancelFitException
 
 # Cell
 @patch
 def profile_memory(self:Learner, plot=True):
     """
-    !!WIP!!
     Records memory stats for single forward-and-backward pass
     """
     with MemHooks(flatten_model(self.model), type(self.model).__name__) as h:
-        #self._split(self.dls.one_batch())
-        #self.model.to(self.dls.device)
         prealloc = torch.cuda.memory_allocated()
         with self.added_cbs(MemProfileCallback()), self.no_logging():
-            self('before_batch')
-            try: self._do_one_batch()
-            except CancelBatchException:
-                for p in self.model.parameters(): p.grad=None
+            self.fit(1)
         mem_log = pd.DataFrame(h.mem_log, copy=True)
     mem_log['mem_all'] = mem_log['mem_all'] - prealloc
     if plot:
