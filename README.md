@@ -55,18 +55,21 @@ memlog1 = learn.profile_memory()
 Let's examine effect of optimizer to memory usage:
 
 ```python
-#cuda
 #hide_output
+#cuda
 learn = Learner(simple_dls(), simple_model(), loss_func=CrossEntropyLossFlat(), cbs=MemStatsCallback(label='SGD'), opt_func=SGD)
 with learn.no_bar(): learn.fit(1, 1e-3, cbs=[ShortEpochCallback(pct=0.1)])
 memlog1 = learn.mem_stats.stats
 learn = Learner(simple_dls(), simple_model(), loss_func=CrossEntropyLossFlat(), cbs=MemStatsCallback(label='Adam'), opt_func=Adam)
 with learn.no_bar(): learn.fit(1, 1e-3, cbs=[ShortEpochCallback(pct=0.1)])
 memlog2 = learn.mem_stats.stats
+learn = Learner(simple_dls(), simple_model(), loss_func=CrossEntropyLossFlat(), cbs=MemStatsCallback(label='Adafactor'), opt_func=adafactor)
+with learn.no_bar(): learn.fit(1, 1e-3, cbs=[ShortEpochCallback(pct=0.1)])
+memlog3 = learn.mem_stats.stats
 ```
 
 ```python
-plot_logs(memlog1, memlog2)
+plot_logs(memlog1, memlog2, memlog3)
 ```
 
 

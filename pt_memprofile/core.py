@@ -75,6 +75,7 @@ def reset_grad(model:nn.Module):
 
 # Cell
 def memprofile(model:nn.Module, xb:Tensor, yb:Tensor, loss_func=CrossEntropyLossFlat(), plot=True, label=None, fp16=False):
+    "Records memory stats for one forward-and-backward pass through the model with batch (xb, yb)"
     def forward_and_loss():
         out = model(xb)
         return loss_func(out, yb)
@@ -100,29 +101,24 @@ def simple_model(ni=100, no=2, n=4):
 
 # Cell
 class MemProfileCallback(Callback):
-    "Cancels batch after backward to avoid opt.step()"
-    def before_batch(self):
-        self._split(self.dls.one_batch())
-        self.model.to(self.dls.device)
-        self.create_opt()
-        self.model.train()
-        self.learn.training = True
-    def after_backward(self):
-        print('Batch canceled')
-        raise CancelBatchException
+    "Cancels fit after one batch before weight update"
+    def before_step(self):
+        reset_grad(self.model)
+        raise CancelStepException
+    def after_batch(self):
+        print('Fit canceled')
+        raise CancelFitException
 
 # Cell
 @patch
 def profile_memory(self:Learner, plot=True):
+    """
+    Records memory stats for single forward-and-backward pass
+    """
     with MemHooks(flatten_model(self.model), type(self.model).__name__) as h:
-        #self._split(self.dls.one_batch())
-        #self.model.to(self.dls.device)
         prealloc = torch.cuda.memory_allocated()
         with self.added_cbs(MemProfileCallback()), self.no_logging():
-            self('before_batch')
-            try: self._do_one_batch()
-            except CancelBatchException:
-                for p in self.model.parameters(): p.grad=None
+            self.fit(1)
         mem_log = pd.DataFrame(h.mem_log, copy=True)
     mem_log['mem_all'] = mem_log['mem_all'] - prealloc
     if plot:
@@ -138,7 +134,7 @@ def simple_dls():
 
 # Cell
 class MemStatsCallback(HookCallback):
-    "Registers memory hooks on ms"
+    "Registers memory hooks on modules in `ms`"
     def __init__(self, ms=None, label=None, remove_end=True):
         store_attr()
         self.prealloc = torch.cuda.memory_allocated()
@@ -147,7 +143,7 @@ class MemStatsCallback(HookCallback):
     def _register(self): self.hooks = MemHooks(self.ms, name=self.label)
 
     def before_fit(self):
-        "Register the `Hooks` on `self.modules`."
+        "Register `self.hooks` on `self.ms`."
         if self.ms is None: self.ms = [m for m in flatten_model(self.model) if has_params(m)]
         if self.every is None: self._register()
 
