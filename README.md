@@ -2,17 +2,11 @@
 > Utilities for cuda memory usage inspection for pytorch and fastai.
 
 
-```python
-#all_slow
-```
-
 ## Installation
 
 `pip install -qq git+git://github.com/arampacha/pt_memprofile.git`
 
 ## How to use
-
-To be done...
 
 ### Profiling TransformerLM
 
@@ -35,7 +29,7 @@ plot_logs(memlog1, memlog2)
 ```
 
 
-![png](docs/images/output_8_0.png)
+![png](docs/images/output_6_0.png)
 
 
 ### Fastai interface
@@ -46,7 +40,7 @@ memlog1 = learn.profile_memory()
 ```
 
 
-![png](docs/images/output_10_0.png)
+![png](docs/images/output_8_0.png)
 
 
 ### Profiling epoch
@@ -73,5 +67,5 @@ plot_logs(memlog1, memlog2, memlog3)
 ```
 
 
-![png](docs/images/output_14_0.png)
+![png](docs/images/output_12_0.png)
 
