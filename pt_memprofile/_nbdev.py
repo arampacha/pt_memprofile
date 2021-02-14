@@ -7,7 +7,7 @@ index = {"MemHooks": "00_core.ipynb",
          "plot_logs": "00_core.ipynb",
          "memprofile": "00_core.ipynb",
          "simple_model": "00_core.ipynb",
-         "MemProfileCallback": "00_core.ipynb",
+         "BreakFitCallback": "00_core.ipynb",
          "Learner.profile_memory": "00_core.ipynb",
          "simple_dls": "00_core.ipynb",
          "MemStatsCallback": "00_core.ipynb"}
